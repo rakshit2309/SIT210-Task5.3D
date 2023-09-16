@@ -1,0 +1,80 @@
+# Import necessary libraries
+import tkinter as tk  # Import the tkinter library for GUI
+import RPi.GPIO as GPIO  # Import RPi.GPIO for GPIO control on Raspberry Pi
+import time  # Import the time module for time-related functions
+
+# Configure GPIO
+GPIO.setmode(GPIO.BCM)  # Set GPIO numbering mode to BCM
+LED_PIN = 10  # Define the GPIO pin connected to the LED (change as needed)
+GPIO.setup(LED_PIN, GPIO.OUT)  # Configure the LED pin as an output
+GPIO.output(LED_PIN, GPIO.LOW)  # Initially turn off the LED
+
+# Morse Code Dictionary
+morse_code_dict = {
+    # Define a dictionary that maps characters to Morse code representations
+    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
+    'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.',
+    'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+    'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+    '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/'
+}
+
+def convert_text_to_morse(input_text):
+    # Function to convert input text to Morse code
+    morse_message = ''
+    for char in input_text.upper():
+        if char in morse_code_dict:
+            morse_message += morse_code_dict[char] + ' '
+        else:
+            morse_message += char + ' '
+    return morse_message
+
+def blink_dot_led():
+    # Function to blink the LED to represent a dot in Morse code
+    GPIO.output(LED_PIN, GPIO.HIGH)
+    time.sleep(0.2)  # Duration of a dot
+    GPIO.output(LED_PIN, GPIO.LOW)
+    time.sleep(0.2)  # Duration between dots and dashes
+
+def blink_dash_led():
+    # Function to blink the LED to represent a dash in Morse code
+    GPIO.output(LED_PIN, GPIO.HIGH)
+    time.sleep(0.6)  # Adjust the duration of a dash
+    GPIO.output(LED_PIN, GPIO.LOW)
+    time.sleep(0.2)  # Adjust the duration between dots and dashes
+
+def blink_morse_code_led(message):
+    # Function to blink the LED based on a Morse code message
+    for char in message:
+        if char == '.':
+            blink_dot_led()
+        elif char == '-':
+            blink_dash_led()
+        elif char == ' ':
+            time.sleep(1)  # Duration between words
+
+def handle_conversion_and_blink():
+    # Function to handle the conversion and blinking process
+    input_text = input_entry.get()  # Get the text input from the GUI
+    morse_message = convert_text_to_morse(input_text)  # Convert input text to Morse code
+    blink_morse_code_led(morse_message)  # Blink the LED to represent the Morse code
+
+window = tk.Tk()  # Create a tkinter window
+window.title("Morse Code Converter")  # Set the window title
+window.geometry('800x600')  # Set the window dimensions
+
+input_label = tk.Label(window, text="Enter your message:")  # Create a label for user instructions
+input_label.pack(padx=20, pady=10)  # Pack the label into the window
+
+input_entry = tk.Entry(window)  # Create an entry field for text input
+input_entry.pack(padx=20, pady=5)  # Pack the entry field into the window
+
+convert_button = tk.Button(window, text="Convert and Blink Morse Code", command=handle_conversion_and_blink)
+# Create a button for conversion and blinking with a callback to handle_conversion_and_blink function
+convert_button.pack(pady=10)  # Pack the button into the window
+
+window.mainloop()  # Start the tkinter main event loop to run the GUI
+
+# Cleanup GPIO
+GPIO.cleanup()  # Release GPIO resources and reset the GPIO pins when the program ends
+
